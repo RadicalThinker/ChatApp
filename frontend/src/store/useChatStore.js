@@ -39,8 +39,8 @@ export const useChatStore = create((set, get) => ({
     const { selectedUser, messages } = get();
     try {
       const res = await axiosinstance.post(`/messages/send-message/${selectedUser._id}`, messageData);
-      console.log(res.data.messages);
-      set({ messages: [...messages, res.data.message] });
+      console.log(res.data);
+      set({ messages: [...messages, res.data.newMessage] });
     } catch (error) {
       toast.error(error.response.data.message);
     }
@@ -53,10 +53,14 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
 
     socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-      //to prevent the message from being added to the chat if it is sent by the selected user
-      // this is to prevent the message from being added to the chat if it is sent by the selected user
-      if (!isMessageSentFromSelectedUser) return;
+      // Check if the message belongs to the current conversation
+      // This means the message is either from the selected user to us,
+      // or from us to the selected user
+      const isRelevantToCurrentChat = 
+        newMessage.senderId === selectedUser._id || 
+        newMessage.receiverId === selectedUser._id;
+
+      if (!isRelevantToCurrentChat) return;
 
       set({
         messages: [...get().messages, newMessage],
