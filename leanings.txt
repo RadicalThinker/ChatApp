@@ -1,0 +1,3 @@
+1. Check Spelling mistake of case sensitive words
+2. Always console log before error handling so that you can see what is going on
+3. If you want to see if skeleton is working then you can set if statement to true
