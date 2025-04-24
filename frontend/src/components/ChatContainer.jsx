@@ -7,7 +7,7 @@ import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime, isSameDay, formatDateDivider } from "../lib/utils";
-import ImageModal from "./ImageModal";
+import ImageModal from "./ImageModal.tsx";
 
 const ChatContainer = () => {
   const {
