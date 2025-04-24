@@ -1,12 +1,13 @@
 import { useChatStore } from "../store/useChatStore";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
+import ImageModal from "./ImageModal";
 
 const ChatContainer = () => {
   const {
@@ -19,6 +20,22 @@ const ChatContainer = () => {
   } = useChatStore();
   const { authuser } = useAuthStore();
   const messageEndRef = useRef(null);
+  
+  // State for the image modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  // Function to handle image clicks
+  const handleImageClick = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setModalOpen(true);
+  };
+
+  // Function to close the modal
+  const closeModal = () => {
+    setModalOpen(false);
+    setSelectedImage(null);
+  };
 
   useEffect(() => {
     getMessages(selectedUser._id);
@@ -80,7 +97,8 @@ const ChatContainer = () => {
                 <img
                   src={message.image}
                   alt="Attachment"
-                  className="sm:max-w-[200px] rounded-md mb-2"
+                  className="sm:max-w-[200px] rounded-md mb-2 cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => handleImageClick(message.image)}
                 />
               )}
               {message.text && <p>{message.text}</p>}
@@ -88,6 +106,13 @@ const ChatContainer = () => {
           </div>
         ))}
       </div>
+
+      {/* Image Modal */}
+      <ImageModal 
+        isOpen={modalOpen} 
+        onClose={closeModal} 
+        imageUrl={selectedImage} 
+      />
 
       <MessageInput />
     </div>
