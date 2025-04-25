@@ -114,7 +114,7 @@ The application should now be running at `http://localhost:5173`
 - `POST /api/messages/send-message/:receiverId` - Send message to user
 - `GET /api/messages/users` - Get all users with conversations
 
-## 👨‍💻 Contributing
+<!-- ## 👨‍💻 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -126,7 +126,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for details. -->
 
 ## 🙏 Acknowledgements
 
@@ -139,6 +139,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-Created with ❤️ by Yash Vardhan Rawat
+Created with ❤️ by Yash Vardhan Rawat.
 
 *Suno... Sunao... Stay connected 🔗*
