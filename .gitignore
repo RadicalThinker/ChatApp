@@ -60,3 +60,17 @@ Thumbs.db
 
 # Optional eslint cache
 .eslintcache
+
+
+
+# MONGODB_URI=mongodb+srv://voicesecret9:vecretvoice45@cluster0.isiyx.mongodb.net/chatapp?retryWrites=true&w=majority&appName=Cluster0
+
+# PORT=5000
+
+# JWT_SECRET=mysecretkey
+
+# NODE_ENV=development
+
+# CLOUDINARY_CLOUD_NAME=dz6a2dm2r
+# CLOUDINARY_API_KEY=127547985768398
+# CLOUDINARY_API_SECRET=st6VxB9XgfWPeuShYha5s-xSNAk

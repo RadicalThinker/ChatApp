@@ -12,6 +12,7 @@
   "dependencies": {
     "animejs": "^4.0.2",
     "axios": "^1.7.9",
+    "chatapp": "file:..",
     "clsx": "^2.1.1",
     "lucide-react": "^0.475.0",
     "motion": "^12.9.1",
