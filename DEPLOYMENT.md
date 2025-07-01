@@ -55,35 +55,34 @@ If you get the error `ENOENT: no such file or directory, stat '/opt/render/proje
 3. **Check Paths:** Verify the backend is looking in the correct directory for static files
 4. **Environment Variables:** Make sure `NODE_ENV=production` is set
 
-### 5. Project Structure Expected by Backend
+### 🚨 Fixing ENOENT Error: Frontend Build Not Found
 
+If you're getting the error `ENOENT: no such file or directory, stat '/opt/render/project/frontend/dist/index.html'`, follow these steps:
+
+#### Step 1: Verify Build Command
+In your Render dashboard, ensure your **Build Command** is:
 ```
-project-root/
-├── backend/
-│   └── src/
-│       └── index.js (serves static files from frontend/dist)
-├── frontend/
-│   └── dist/ (created after npm run build)
-│       └── index.html
-└── package.json (root build scripts)
+npm run build
 ```
 
-### 6. Common Issues and Solutions
+#### Step 2: Check Build Logs
+1. Go to your Render service dashboard
+2. Click on "Logs" 
+3. Look for the build process output
+4. Ensure you see messages like:
+   - "Installing backend dependencies..."
+   - "Installing frontend dependencies..."  
+   - "Building frontend..."
+   - "✅ Build successful: index.html found"
 
-**Issue 1: Build fails during npm install**
-- Solution: Check package.json dependencies and ensure all are compatible
+#### Step 3: Test Locally
+Run this command locally to test the build:
+```bash
+npm run build
+npm run check-deployment
+```
 
-**Issue 2: Frontend build succeeds but files not found**
-- Solution: Check the path resolution in backend/src/index.js
-
-**Issue 3: CORS errors in production**
-- Solution: Update FRONTEND_URL environment variable to match your Render URL
-
-### 7. Alternative Deployment (if above fails)
-
-If the single service deployment doesn't work, you can deploy as two separate services:
-
-1. **Backend Service:** Deploy from `/backend` directory
-2. **Frontend Service:** Deploy from `/frontend` directory as a static site
-
-Then update the frontend to point to the backend API URL.
+#### Step 4: Manual Verification
+After deployment, check the logs for these messages:
+- "🚀 Setting up production static file serving..."
+- "✅ Found frontend build at: [path]"

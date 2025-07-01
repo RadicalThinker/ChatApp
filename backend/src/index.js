@@ -9,6 +9,7 @@ import { app, server } from "../lib/socket.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
+import { existsSync, readdirSync } from "fs";
 
 dotenv.config();
 
@@ -33,21 +34,70 @@ app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
 if (process.env.NODE_ENV === "production") {
-  // Get the project root directory (two levels up from backend/src)
-  const projectRoot = path.resolve(__dirname, "../../..");
-  const frontendDistPath = path.join(projectRoot, "frontend", "dist");
+  console.log("🚀 Setting up production static file serving...");
 
-  console.log("Serving static files from:", frontendDistPath);
+  // Try multiple possible paths for the frontend build
+  const possiblePaths = [
+    path.resolve(process.cwd(), "frontend", "dist"),
+    path.resolve(__dirname, "../../frontend/dist"),
+    path.resolve(__dirname, "../../../frontend/dist"),
+  ];
 
-  // Serve static files from the React frontend app
-  app.use(express.static(frontendDistPath));
+  let frontendDistPath = null;
 
-  // Handle React routing, return all requests to React app
-  app.get("*", (req, res) => {
-    const indexPath = path.join(frontendDistPath, "index.html");
-    console.log("Serving index.html from:", indexPath);
-    res.sendFile(indexPath);
-  });
+  for (const testPath of possiblePaths) {
+    const indexPath = path.join(testPath, "index.html");
+    console.log(`Checking for frontend build at: ${testPath}`);
+
+    if (existsSync(indexPath)) {
+      frontendDistPath = testPath;
+      console.log(`✅ Found frontend build at: ${frontendDistPath}`);
+      break;
+    }
+  }
+
+  if (!frontendDistPath) {
+    console.error("❌ Frontend build not found in any of these locations:");
+    possiblePaths.forEach((p) => console.error(`  - ${p}`));
+    console.error("Current working directory:", process.cwd());
+    console.error("__dirname:", __dirname);
+
+    // List contents of current directory for debugging
+    try {
+      console.error("Contents of current working directory:");
+      const files = readdirSync(process.cwd());
+      files.forEach((file) => {
+        const fullPath = path.join(process.cwd(), file);
+        const isDir = existsSync(fullPath) && readdirSync(fullPath).length > 0;
+        console.error(`  ${isDir ? "📁" : "📄"} ${file}`);
+      });
+    } catch (e) {
+      console.error("Error reading directory contents:", e.message);
+    }
+
+    // Don't exit - let the server start but show an error page
+    app.get("*", (req, res) => {
+      res.status(500).send(`
+        <h1>Frontend Build Not Found</h1>
+        <p>The frontend build files are missing. Please check the build process.</p>
+        <h2>Debugging Information:</h2>
+        <ul>
+          <li>Current working directory: ${process.cwd()}</li>
+          <li>Backend directory: ${__dirname}</li>
+          <li>Searched paths: ${possiblePaths.join(", ")}</li>
+        </ul>
+      `);
+    });
+  } else {
+    // Serve static files from the React frontend app
+    app.use(express.static(frontendDistPath));
+
+    // Handle React routing, return all requests to React app
+    app.get("*", (req, res) => {
+      const indexPath = path.join(frontendDistPath, "index.html");
+      res.sendFile(indexPath);
+    });
+  }
 }
 
 server.listen(PORT, () => {

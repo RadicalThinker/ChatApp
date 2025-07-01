@@ -2,7 +2,7 @@ services:
   - type: web
     name: chatapp
     env: node
-    buildCommand: npm run build
+    buildCommand: npm run build && npm run check-deployment
     startCommand: npm start
     envVars:
       - key: NODE_ENV
