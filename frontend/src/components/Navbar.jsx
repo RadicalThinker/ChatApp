@@ -3,7 +3,7 @@ import { LogOut, MessageSquare, Settings, User } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 
 const Navbar = () => {
-   const {logout , authuser} = useAuthStore()
+  const { logout, authuser } = useAuthStore();
 
   return (
     <header
@@ -13,7 +13,10 @@ const Navbar = () => {
       <div className="container mx-auto px-4 h-16">
         <div className="flex items-center justify-between h-full">
           <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-all">
+            <Link
+              to="/"
+              className="flex items-center gap-2.5 hover:opacity-80 transition-all"
+            >
               <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
                 <MessageSquare className="w-5 h-5 text-primary" />
               </div>
@@ -22,23 +25,41 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link
-              to={"/settings"}
-              className={`
-              btn btn-sm gap-2 transition-colors
-              
-              `}
+            <button
+              className="btn btn-sm gap-2 transition-colors"
+              onClick={() => {
+                // Import and use chatStore from useChatStore
+                import("../store/useChatStore").then((module) => {
+                  const chatStore = module.useChatStore.getState();
+                  // Suspend chat state before navigating
+                  chatStore.suspendChat();
+                  // Navigate to settings page
+                  window.location.href = "/settings";
+                });
+              }}
             >
               <Settings className="w-4 h-4" />
               <span className="hidden sm:inline">Settings</span>
-            </Link>
+            </button>
 
             {authuser && (
               <>
-                <Link to={"/profile"} className={`btn btn-sm gap-2`}>
+                <button
+                  className="btn btn-sm gap-2"
+                  onClick={() => {
+                    // Import and use chatStore from useChatStore
+                    import("../store/useChatStore").then((module) => {
+                      const chatStore = module.useChatStore.getState();
+                      // Suspend chat state before navigating
+                      chatStore.suspendChat();
+                      // Navigate to profile page
+                      window.location.href = "/profile";
+                    });
+                  }}
+                >
                   <User className="size-5" />
                   <span className="hidden sm:inline">Profile</span>
-                </Link>
+                </button>
 
                 <button className="flex gap-2 items-center" onClick={logout}>
                   <LogOut className="size-5" />

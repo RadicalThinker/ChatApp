@@ -20,7 +20,7 @@ const ChatContainer = () => {
   } = useChatStore();
   const { authuser } = useAuthStore();
   const messageEndRef = useRef(null);
-  
+
   // State for the image modal
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -38,12 +38,20 @@ const ChatContainer = () => {
   };
 
   useEffect(() => {
-    getMessages(selectedUser._id);
+    // Make sure selectedUser exists before trying to get messages
+    if (selectedUser && selectedUser._id) {
+      // First unsubscribe to clear any previous listeners
+      unsubscribeFromMessages();
 
-    subscribeToMessages();
+      // Then get messages for the selected user
+      getMessages(selectedUser._id);
+
+      // Finally subscribe to new messages
+      subscribeToMessages();
+    }
 
     return () => unsubscribeFromMessages();
-  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+  }, [selectedUser, getMessages, subscribeToMessages, unsubscribeFromMessages]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
@@ -65,25 +73,30 @@ const ChatContainer = () => {
   const renderMessagesWithDateDividers = () => {
     let result = [];
     let lastMessageDate = null;
-    
+
     messages.forEach((message, index) => {
       // Check if we need to add a date divider
       if (!lastMessageDate || !isSameDay(message.createdAt, lastMessageDate)) {
         // Add a date divider
         result.push(
-          <div key={`date-divider-${message.createdAt}`} className="flex justify-center my-4">
+          <div
+            key={`date-divider-${message.createdAt}`}
+            className="flex justify-center my-4"
+          >
             <div className="bg-base-300 text-xs px-3 py-1 rounded-full text-base-content/70 font-medium">
               {formatDateDivider(message.createdAt)}
             </div>
           </div>
         );
       }
-      
+
       // Add the message
       result.push(
         <div
           key={message._id ? `${message._id}-${index}` : `msg-${index}`}
-          className={`chat ${message.senderId === authuser.user._id ? "chat-end" : "chat-start"}`}
+          className={`chat ${
+            message.senderId === authuser.user._id ? "chat-end" : "chat-start"
+          }`}
           ref={index === messages.length - 1 ? messageEndRef : null}
         >
           <div className=" chat-image avatar">
@@ -99,6 +112,11 @@ const ChatContainer = () => {
             </div>
           </div>
           <div className="chat-header mb-1">
+            <span className="text-sm font-medium mr-2">
+              {message.senderId === authuser.user._id
+                ? authuser.user.username
+                : selectedUser.username}
+            </span>
             <time className="text-xs opacity-50 ml-1">
               {formatMessageTime(message.createdAt)}
             </time>
@@ -116,11 +134,11 @@ const ChatContainer = () => {
           </div>
         </div>
       );
-      
+
       // Update last message date
       lastMessageDate = message.createdAt;
     });
-    
+
     return result;
   };
 
@@ -133,10 +151,10 @@ const ChatContainer = () => {
       </div>
 
       {/* Image Modal */}
-      <ImageModal 
-        isOpen={modalOpen} 
-        onClose={closeModal} 
-        imageUrl={selectedImage} 
+      <ImageModal
+        isOpen={modalOpen}
+        onClose={closeModal}
+        imageUrl={selectedImage}
       />
 
       <MessageInput />

@@ -38,7 +38,10 @@ export const useChatStore = create((set, get) => ({
   sendMessage: async (messageData) => {
     const { selectedUser, messages } = get();
     try {
-      const res = await axiosinstance.post(`/messages/send-message/${selectedUser._id}`, messageData);
+      const res = await axiosinstance.post(
+        `/messages/send-message/${selectedUser._id}`,
+        messageData
+      );
       console.log(res.data);
       set({ messages: [...messages, res.data.newMessage] });
     } catch (error) {
@@ -56,8 +59,8 @@ export const useChatStore = create((set, get) => ({
       // Check if the message belongs to the current conversation
       // This means the message is either from the selected user to us,
       // or from us to the selected user
-      const isRelevantToCurrentChat = 
-        newMessage.senderId === selectedUser._id || 
+      const isRelevantToCurrentChat =
+        newMessage.senderId === selectedUser._id ||
         newMessage.receiverId === selectedUser._id;
 
       if (!isRelevantToCurrentChat) return;
@@ -70,8 +73,31 @@ export const useChatStore = create((set, get) => ({
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
-    socket.off("newMessage");
+    if (socket) {
+      socket.off("newMessage");
+    }
   },
 
   setSelectedUser: (selectedUser) => set({ selectedUser }),
+
+  // Reset the entire chat store state
+  resetState: () => {
+    set({
+      messages: [],
+      selectedUser: null,
+      users: [],
+      isUsersLoading: false,
+      isMessagesLoading: false,
+    });
+  },
+
+  // Temporarily suspend chat state when navigating away
+  suspendChat: () => {
+    // Keep users data but clear selected user and messages
+    set({
+      messages: [],
+      selectedUser: null,
+      isMessagesLoading: false,
+    });
+  },
 }));

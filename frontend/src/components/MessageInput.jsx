@@ -9,18 +9,97 @@ const MessageInput = () => {
   const fileInputRef = useRef(null);
   const { sendMessage } = useChatStore();
 
-  const handleImageChange = (e) => {
+  // Function to compress images
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+
+        img.onload = () => {
+          // Create canvas
+          const canvas = document.createElement("canvas");
+
+          // Calculate new dimensions while maintaining aspect ratio
+          let width = img.width;
+          let height = img.height;
+
+          // Max dimensions
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          // Draw image on canvas
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Get compressed image as data URL
+          // Adjust quality (0.7 = 70% quality)
+          const compressedDataUrl = canvas.toDataURL(file.type, 0.7);
+
+          resolve(compressedDataUrl);
+        };
+      };
+    });
+  };
+
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (!file.type.startsWith("image/")) {
+
+    // Check if file is an image
+    if (!file || !file.type.startsWith("image/")) {
       toast.error("Please select an image file");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
-    reader.readAsDataURL(file);
+    // Check file size - limit to 10MB for initial selection
+    const maxSizeInMB = 10;
+    const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+
+    if (file.size > maxSizeInBytes) {
+      toast.error(
+        `Image size exceeds ${maxSizeInMB}MB limit. Please select a smaller image.`
+      );
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    try {
+      toast.loading("Processing image...");
+      // Compress image if larger than 1MB
+      if (file.size > 1024 * 1024) {
+        const compressedImage = await compressImage(file);
+        setImagePreview(compressedImage);
+      } else {
+        // For small images, don't compress
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+      toast.dismiss();
+    } catch (error) {
+      toast.error("Failed to process image. Please try again.");
+      console.error("Image processing error:", error);
+    }
   };
 
   const removeImage = () => {
@@ -28,11 +107,18 @@ const MessageInput = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const [isSending, setIsSending] = useState(false);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!text.trim() && !imagePreview) return;
 
     try {
+      setIsSending(true);
+      if (imagePreview) {
+        toast.loading("Sending message...");
+      }
+
       await sendMessage({
         text: text.trim(),
         image: imagePreview,
@@ -42,8 +128,12 @@ const MessageInput = () => {
       setText("");
       setImagePreview(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      toast.dismiss();
     } catch (error) {
       console.error("Failed to send message:", error);
+      toast.error("Failed to send message. Please try again.");
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -98,9 +188,13 @@ const MessageInput = () => {
         <button
           type="submit"
           className="btn btn-sm btn-circle"
-          disabled={!text.trim() && !imagePreview}
+          disabled={(!text.trim() && !imagePreview) || isSending}
         >
-          <Send size={22} />
+          {isSending ? (
+            <div className="animate-spin h-5 w-5 border-t-2 border-white rounded-full"></div>
+          ) : (
+            <Send size={22} />
+          )}
         </button>
       </form>
     </div>
